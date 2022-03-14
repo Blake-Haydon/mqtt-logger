@@ -61,6 +61,8 @@ class Recorder:
         # check_same_thread needs to be false as the MQTT callbacks run on a different thread
         self._CONN = sqlite3.connect(sqlite_database_path, check_same_thread=False)
 
+        # TODO: ADD WARNING IF DATABASE ALREADY EXISTS
+
         # Check to see if the logging database has been initiated
         contains_LOG_table = self._CONN.execute(
             f"""
