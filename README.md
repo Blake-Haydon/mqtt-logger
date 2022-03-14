@@ -2,7 +2,9 @@
 
 ## Installation
 
-<!-- TODO: COMPLETE THIS -->
+```bash
+pip install mqtt-logger
+```
 
 ## Examples
 
