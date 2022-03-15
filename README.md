@@ -21,6 +21,12 @@ pip install mqtt-logger
 
 This example records messages to the `test/#` topic using a public MQTT broker. It will record for 10 seconds. If you are using a private broker, you may need to set the `username` and `password` parameters.
 
+```bash
+# Run example in terminal
+poetry run python examples/10s_recording.py
+```
+
+Example recorder taken from [examples/10s_recording.py](examples/10s_recording.py)
 ```python
 import mqtt_logger
 import os
@@ -46,6 +52,12 @@ rec.stop()
 
 This example plays back previously recorded MQTT messages from `mqtt_logger.Recorder`. If you are using a private broker, you may need to set the `username` and `password` parameters.
 
+```bash
+# Run example in terminal after running the recorder example
+poetry run python examples/10s_playback.py
+```
+
+Example recorder taken from [examples/10s_playback.py](examples/10s_playback.py)
 ```python
 import mqtt_logger
 import os
