@@ -1,5 +1,14 @@
 # MQTT to SQLite Logger
 
+## Table of Contents
+- [MQTT to SQLite Logger](#mqtt-to-sqlite-logger)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Example Usage](#example-usage)
+    - [Recording MQTT Messages](#recording-mqtt-messages)
+    - [Playback Recorded MQTT Messages](#playback-recorded-mqtt-messages)
+  - [Unit Tests](#unit-tests)
+
 ## Installation
 
 ```bash
