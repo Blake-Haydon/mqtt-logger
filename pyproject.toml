@@ -11,6 +11,7 @@ homepage = "https://github.com/Blake-Haydon/mqtt-logger"
 [tool.poetry.dependencies]
 python = "^3.10"
 paho-mqtt = "^1.6.1"
+rich = "^12.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
