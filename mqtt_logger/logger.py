@@ -84,8 +84,9 @@ class Recorder:
                 f"""
                 CREATE TABLE {LOGGER_TABLE_NAME}
                 (TIME_DELTA DECIMAL(15,6)   PRIMARY KEY         NOT NULL,
+                CURRENT_TIME                DECIMAL(15,6)       NOT NULL,
                 TOPIC                       VARCHAR             NOT NULL,
-                MESSAGE                     VARCHAR             NOT NULL);
+                MESSAGE                     BLOB                NOT NULL);
                 """
             )
             logging.info(f"Created table {LOGGER_TABLE_NAME} in {sqlite_database_path}")
@@ -146,31 +147,34 @@ class Recorder:
         """Callback function for MQTT broker on message that logs the incoming MQTT message."""
         if self._recording:
             try:
-                self.log(msg.topic, msg.payload.decode("utf-8"))
+                self.log(msg.topic, msg.payload)
 
             except Exception as e:
                 logging.error(f"{type(e)}: {e}")
 
-    def log(self, mqtt_topic: str, message: str) -> None:
+    def log(self, mqtt_topic: str, message: bytes) -> None:
         """Logs the time delta and message data to the local sqlite database.
 
         Parameters
         ----------
         mqtt_topic : str
             Incoming topic to be recorded
-        message : str
+        message : bytes
             Corresponding message to be recorded
         """
         time_delta = time.monotonic() - self._start_time + self._last_recorded_time
 
-        # Write data to csv file
+        # Current time may be incorrect on a device without an internet connection
+        current_time = time.time()
+
+        # Write data to database
         try:
             self._cur.execute(
-                f"INSERT INTO {LOGGER_TABLE_NAME} VALUES (?, ?, ?)",
-                (time_delta, mqtt_topic, message),
+                f"INSERT INTO {LOGGER_TABLE_NAME} VALUES (?, ?, ?, ?)",
+                (time_delta, current_time, mqtt_topic, message),
             )
             self._con.commit()
-            logging.info(f"{mqtt_topic}: {message}")
+            logging.info(f"{len(message):>4} bytes on {mqtt_topic}")
 
         except Exception as e:
             logging.error(f"{type(e)}: {e} \nFailed to log {mqtt_topic}: {message}")
@@ -235,7 +239,12 @@ class Playback:
         self._log_data = []
         for record in all_log_records:
             self._log_data.append(
-                {"time_delta": record[0], "mqtt_topic": record[1], "message": record[2]}
+                {
+                    "time_delta": record[0],
+                    "current_time": record[1],
+                    "mqtt_topic": record[2],
+                    "message": record[3],
+                }
             )
 
         # Connect to MQTT broker
@@ -286,7 +295,7 @@ class Playback:
 
             try:
                 self._client.publish(row["mqtt_topic"], row["message"])
-                logging.info(f"{row['mqtt_topic']}: {row['message']}")
+                logging.info(f"{len(row['message']):>4} bytes on {row['mqtt_topic']}")
 
             except Exception as e:
                 logging.error(
