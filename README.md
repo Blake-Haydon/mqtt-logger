@@ -1,6 +1,8 @@
 # MQTT to SQLite Logger
 
 [![PyPI version](https://badge.fury.io/py/mqtt-logger.svg)](https://badge.fury.io/py/mqtt-logger)
+[![Python package](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-package.yml/badge.svg)](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-package.yml)
+[![Upload Python Package](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-publish.yml)
 
 ## Table of Contents
 - [MQTT to SQLite Logger](#mqtt-to-sqlite-logger)
