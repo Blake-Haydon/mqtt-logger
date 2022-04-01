@@ -1,5 +1,7 @@
 # MQTT to SQLite Logger
 
+[![PyPI version](https://badge.fury.io/py/mqtt-logger.svg)](https://badge.fury.io/py/mqtt-logger)
+
 ## Table of Contents
 - [MQTT to SQLite Logger](#mqtt-to-sqlite-logger)
   - [Table of Contents](#table-of-contents)
