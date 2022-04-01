@@ -1,7 +1,7 @@
 [tool.poetry]
 license = "MIT"
 name = "mqtt_logger"
-version = "0.2.3"
+version = "0.2.4"
 description = "Python based MQTT to SQLite3 logger"
 authors = ["Blake Haydon <blake.a.haydon@gmail.com>"]
 readme = "README.md"
