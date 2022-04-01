@@ -21,8 +21,20 @@ a single table called `LOG`.
 
 ## Installation
 
+If you are using `mqtt-logger` as a python package, you can install it using pip.
+
 ```bash
+# To use as a package
 pip install mqtt-logger
+```
+
+If you are looking to develop `mqtt-logger`, clone and run the following commands (poetry must be installed). 
+
+```bash
+# For development work
+git clone git@github.com:Blake-Haydon/mqtt-logger.git
+git config --local core.hooksPath .githooks/
+poetry install
 ```
 
 ## Example Usage
