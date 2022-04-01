@@ -3,11 +3,19 @@
 ## Table of Contents
 - [MQTT to SQLite Logger](#mqtt-to-sqlite-logger)
   - [Table of Contents](#table-of-contents)
+  - [Description](#description)
   - [Installation](#installation)
   - [Example Usage](#example-usage)
     - [Recording MQTT Messages](#recording-mqtt-messages)
     - [Playback Recorded MQTT Messages](#playback-recorded-mqtt-messages)
   - [Unit Tests](#unit-tests)
+
+## Description
+
+`mqtt-logger` allows for asynchronous data logging of MQTT messages to a SQLite database. The SQLite database has 
+a single table called `LOG`.
+
+<!-- TODO: Insert example table here -->
 
 ## Installation
 
@@ -19,7 +27,8 @@ pip install mqtt-logger
 
 ### Recording MQTT Messages
 
-This example records messages to the `test/#` topic using a public MQTT broker. It will record for 10 seconds. If you are using a private broker, you may need to set the `username` and `password` parameters.
+This example records messages to the `test/#` topic using a public MQTT broker. It will record for 10 seconds. If you 
+are using a private broker, you may need to set the `username` and `password` parameters.
 
 ```bash
 # Run example in terminal
@@ -50,7 +59,8 @@ rec.stop()
 
 ### Playback Recorded MQTT Messages
 
-This example plays back previously recorded MQTT messages from `mqtt_logger.Recorder`. If you are using a private broker, you may need to set the `username` and `password` parameters.
+This example plays back previously recorded MQTT messages from `mqtt_logger.Recorder`. If you are using a private 
+broker, you may need to set the `username` and `password` parameters.
 
 ```bash
 # Run example in terminal after running the recorder example
