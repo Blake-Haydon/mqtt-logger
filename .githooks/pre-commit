@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Precommit hook to always generate a requiements.txt file.
+echo Generating requirements.txt 
+poetry lock && poetry export -f requirements.txt --output requirements.txt
+echo Done, requirements.txt generated!
