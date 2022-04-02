@@ -8,6 +8,8 @@
 - [MQTT to SQLite Logger](#mqtt-to-sqlite-logger)
   - [Table of Contents](#table-of-contents)
   - [Description](#description)
+    - [`LOG` Table](#log-table)
+    - [`RUN` Table](#run-table)
   - [Installation](#installation)
   - [Example Usage](#example-usage)
     - [Recording MQTT Messages](#recording-mqtt-messages)
@@ -16,10 +18,31 @@
 
 ## Description
 
-`mqtt-logger` allows for asynchronous data logging of MQTT messages to a SQLite database. The SQLite database has 
-a single table called `LOG`.
+`mqtt-logger` allows for asynchronous data logging of MQTT messages to a SQLite database. The SQLite database has two 
+tables called `LOG` and `RUN`. The `LOG` table contains the messages that are being logged. The `RUN` table contains 
+the information about the current run of the program.
 
-<!-- TODO: Insert example table here -->
+### `LOG` Table
+
+| ROW NAME  | DESCRIPTION                                            |
+| --------- | ------------------------------------------------------ |
+| ID        | Unique number assigned to each message (ascending int) |
+| RUN_ID    | ID of the current run (ascending int)                  |
+| UNIX_TIME | Time when the message was received                     |
+| TOPIC     | MQTT topic                                             |
+| MESSAGE   | MQTT message received                                  |
+
+### `RUN` Table
+
+| ROW NAME        | DESCRIPTION                                   |
+| --------------- | --------------------------------------------- |
+| ID              | Unique number assigned to run (ascending int) |
+| START_UNIX_TIME | Time when logger was started                  |
+| END_UNIX_TIME   | Time when logger was stopped                  |
+
+
+--- 
+
 
 ## Installation
 
@@ -38,6 +61,9 @@ git clone git@github.com:Blake-Haydon/mqtt-logger.git
 git config --local core.hooksPath .githooks/
 poetry install
 ```
+
+---
+
 
 ## Example Usage
 
@@ -71,6 +97,9 @@ time.sleep(10)
 rec.stop()
 ```
 
+---
+
+
 ### Playback Recorded MQTT Messages
 
 This example plays back previously recorded MQTT messages from `mqtt_logger.Recorder`. If you are using a private 
@@ -96,6 +125,10 @@ playback = mqtt_logger.Playback(
 # Start playback at 2x speed (twice as fast)
 playback.play(speed=2)
 ```
+
+
+---
+
 
 ## Unit Tests
 
