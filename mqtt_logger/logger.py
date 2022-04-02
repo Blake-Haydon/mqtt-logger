@@ -62,7 +62,7 @@ class Recorder:
         verbose: bool = False,
         username: str = None,
         password: str = None,
-    ) -> None:
+    ):
         # If set to verbose print info messages
         if verbose:
             logging.getLogger().setLevel(logging.INFO)
@@ -96,7 +96,7 @@ class Recorder:
         self._client.connect(broker_address)
         self._client.loop_start()  # Threaded execution loop
 
-    def _on_connect(self, client, userdata, flags, rc) -> None:
+    def _on_connect(self, client, userdata, flags, rc):
         """Callback function for MQTT broker on connection."""
 
         if rc == 0:
@@ -115,7 +115,7 @@ class Recorder:
         except Exception as e:
             logging.error(f"{type(e)}: {e}")
 
-    def _on_message(self, client, userdata, msg) -> None:
+    def _on_message(self, client, userdata, msg):
         """Callback function for MQTT broker on message that logs the incoming MQTT message."""
         if self._recording:
             try:
@@ -125,7 +125,7 @@ class Recorder:
             except Exception as e:
                 logging.error(f"{type(e)}: {e}")
 
-    def start(self) -> None:
+    def start(self):
         """Starts the MQTT logging."""
         # TODO: ADD RECORDING NUMBER
 
@@ -135,7 +135,7 @@ class Recorder:
         self._recording = True
         logging.info("Logging started")
 
-    def stop(self) -> None:
+    def stop(self):
         """Graceful exit for closing the database connection and stopping the MQTT client."""
         self._recording = False
         logging.info("Logging stopped")
@@ -180,7 +180,7 @@ class Playback:
         verbose: bool = False,
         username: str = None,
         password: str = None,
-    ) -> None:
+    ):
 
         # If set to verbose print info messages
         if verbose:
@@ -202,7 +202,7 @@ class Playback:
         self._client.connect(broker_address)
         self._client.loop_start()  # Threaded execution loop
 
-    def _on_connect(self, client, userdata, flags, rc) -> None:
+    def _on_connect(self, client, userdata, flags, rc):
         """Callback function for MQTT broker on connection."""
 
         if rc == 0:
@@ -212,7 +212,7 @@ class Playback:
                 "Connection was unsuccessful, check that the broker IP is corrrect"
             )
 
-    def play(self, speed: float = 1) -> None:
+    def play(self, speed: float = 1):
         """Play the logged data at a certain speed using an async function.
 
         Parameters
@@ -226,7 +226,7 @@ class Playback:
         # Run the event loop to issue out all of the MQTT publishes
         asyncio.run(self._publish(speed))
 
-    async def _publish(self, speed: float) -> None:
+    async def _publish(self, speed: float):
         """Async function that collects all the necessary publish functions and gathers them to then be run by the
         event loop.
 
