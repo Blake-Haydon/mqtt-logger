@@ -1,13 +1,18 @@
 import logging
 import sqlite3
 import asyncio
-import time
 
 import paho.mqtt.client as mqtt
 from rich.logging import RichHandler
 
-# Define Constants
-LOGGER_TABLE_NAME = "LOG"
+from mqtt_logger.database import (
+    LOGGER_TABLE_NAME,
+    create_log_table,
+    insert_log_entry,
+    log_table_exists,
+    retrieve_log_entries,
+    start_time,
+)
 
 # Set logging to output all info by default (with a space for clarity)
 logging.basicConfig(
@@ -37,19 +42,15 @@ class Recorder:
 
     Attributes
     ----------
-    topics : List(str)
+    topics : list(str)
         List of topic names
     _recording : bool
         Whether the Recorder object is currently recording or not
-    _last_recorded_time : `float`
-        The last recorded time so that new time deltas will always count forward and not start from 0 again
-    _start_time : `float`
-        The time that the Recorder object was created
-    _con : `sqlite3.Connection`
+    _con : sqlite3.Connection
         Connection object that updates the database file located at sqlite_database_path
-    _cur : `sqlite3.Cursor`
+    _cur : sqlite3.Cursor
         Database cursor object that updates the database file located at sqlite_database_path
-    _client : `paho.mqtt.client`
+    _client : paho.mqtt.client
         MQTT client that connects to the broker and recives the messages
     """
 
@@ -71,47 +72,17 @@ class Recorder:
         self._con = sqlite3.connect(sqlite_database_path, check_same_thread=False)
         self._cur = self._con.cursor()
 
-        # Check to see if the logging database has been initiated
-        contains_log_table = self._cur.execute(
-            f"""
-            SELECT name FROM sqlite_master WHERE type='table' AND name='{LOGGER_TABLE_NAME}'
-            """
-        ).fetchone()
-
         # Make a LOG table if none currently exists
-        if contains_log_table is None:
-            self._cur.execute(
-                f"""
-                CREATE TABLE {LOGGER_TABLE_NAME}
-                (ID                         INTEGER             PRIMARY KEY,
-                TIME_DELTA                  DECIMAL(15,6)       NOT NULL,
-                CURRENT_TIME                DECIMAL(15,6)       NOT NULL,
-                TOPIC                       VARCHAR             NOT NULL,
-                MESSAGE                     BLOB                NOT NULL);
-                """
-            )
-            logging.info(f"Created table {LOGGER_TABLE_NAME} in {sqlite_database_path}")
-
-        else:
+        if log_table_exists(self._cur):
             logging.warning(
                 f"Table already exists, mqtt_logger will append to {sqlite_database_path}"
             )
+        else:
+            create_log_table(self._cur)
+            logging.info(f"Created table {LOGGER_TABLE_NAME} in {sqlite_database_path}")
 
         # The logger object can subscribe to many topics (if none are selected then it will subscribe to all)
         self.topics = topics
-
-        # Save last recorded time so that time always moves forward. This is so logging can still function on a pi
-        # where the real time clock may be reset
-        self._start_time = time.monotonic()
-        self._last_recorded_time = self._cur.execute(
-            f"""
-            SELECT MAX(TIME_DELTA) FROM {LOGGER_TABLE_NAME}
-            """
-        ).fetchone()[0]
-
-        # This occurs when there are no records but the database has been setup
-        if self._last_recorded_time is None:
-            self._last_recorded_time = 0
 
         # Do not start logging when object is created (wait for start method)
         self._recording = False
@@ -148,40 +119,19 @@ class Recorder:
         """Callback function for MQTT broker on message that logs the incoming MQTT message."""
         if self._recording:
             try:
-                self.log(msg.topic, msg.payload)
+                insert_log_entry(self._con, msg.topic, msg.payload)
+                logging.info(f"{len(msg.payload):>4} bytes <- {msg.topic}")
 
             except Exception as e:
                 logging.error(f"{type(e)}: {e}")
 
-    def log(self, mqtt_topic: str, message: bytes) -> None:
-        """Logs the time delta and message data to the local sqlite database.
-
-        Parameters
-        ----------
-        mqtt_topic : str
-            Incoming topic to be recorded
-        message : bytes
-            Corresponding message to be recorded
-        """
-        time_delta = time.monotonic() - self._start_time + self._last_recorded_time
-
-        # Current time may be incorrect on a device without an internet connection
-        current_time = time.time()
-
-        # Write data to database
-        try:
-            self._cur.execute(
-                f"INSERT INTO {LOGGER_TABLE_NAME} VALUES (NULL, ?, ?, ?, ?)",
-                (time_delta, current_time, mqtt_topic, message),
-            )
-            self._con.commit()
-            logging.info(f"{len(message):>4} bytes on {mqtt_topic}")
-
-        except Exception as e:
-            logging.error(f"{type(e)}: {e} \nFailed to log {mqtt_topic}: {message}")
-
     def start(self) -> None:
         """Starts the MQTT logging."""
+        # TODO: ADD RECORDING NUMBER
+
+        if self._recording:
+            raise RuntimeError("Already recording")
+
         self._recording = True
         logging.info("Logging started")
 
@@ -213,7 +163,11 @@ class Playback:
 
     Attributes
     ----------
-    _client : `paho.mqtt.client`
+    _con : sqlite3.Connection
+        Connection object that updates the database file located at sqlite_database_path
+    _cur : sqlite3.Cursor
+        Database cursor object that updates the database file located at sqlite_database_path
+    _client : paho.mqtt.client
         MQTT client that connects to the broker and recives the messages
     _log_data: list(dict)
         A list of all of the rows in the log file stored in dict format
@@ -232,22 +186,13 @@ class Playback:
         if verbose:
             logging.getLogger().setLevel(logging.INFO)
 
-        # Connect to sqlite database and get all records from the LOG table
-        conn = sqlite3.connect(sqlite_database_path)
-        all_log_records = conn.execute("""SELECT * FROM LOG""").fetchall()
+        # Connect to sqlite database
+        # check_same_thread needs to be false as the MQTT callbacks run on a different thread
+        self._con = sqlite3.connect(sqlite_database_path, check_same_thread=False)
+        self._cur = self._con.cursor()
 
-        # Convert list of tuples in list of dicts
-        self._log_data = []
-        for record in all_log_records:
-            self._log_data.append(
-                {
-                    "id": record[0],
-                    "time_delta": record[1],
-                    "current_time": record[2],
-                    "mqtt_topic": record[3],
-                    "message": record[4],
-                }
-            )
+        # Retrieve all of the log entries from the database
+        self._log_data = retrieve_log_entries(self._cur)
 
         # Connect to MQTT broker
         self._client = mqtt.Client()
@@ -290,23 +235,19 @@ class Playback:
         speed : float
             Speed multiplier to determine how fast to send out the data. A higher value means faster.
         """
+        start_unix_time = start_time(self._cur)
 
-        async def _publish_aux(row):
-            scaled_sleep = row["time_delta"] / speed
+        async def _publish_aux(log):
+            scaled_sleep = (log["unix_time"] - start_unix_time) / speed
             await asyncio.sleep(scaled_sleep)
 
             try:
-                self._client.publish(row["mqtt_topic"], row["message"])
-                logging.info(f"{len(row['message']):>4} bytes on {row['mqtt_topic']}")
+                self._client.publish(log["topic"], log["message"])
+                logging.info(f"{len(log['message']):>4} bytes -> {log['topic']}")
 
             except Exception as e:
-                logging.error(
-                    f"{type(e)}: {e} \nFailed to publish {row['mqtt_topic']}: {row['message']}"
-                )
-
-        publish_queue = []
-        for row in self._log_data:
-            publish_queue.append(_publish_aux(row))
+                logging.error(f"{type(e)}: {e}")
 
         # Load all async operation at the start using gather
+        publish_queue = [_publish_aux(log) for log in self._log_data]
         await asyncio.gather(*publish_queue, return_exceptions=True)
