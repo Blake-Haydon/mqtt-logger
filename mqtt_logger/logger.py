@@ -6,15 +6,16 @@ import paho.mqtt.client as mqtt
 from rich.logging import RichHandler
 
 from mqtt_logger.database import (
-    LOGGER_TABLE_NAME,
-    create_log_table,
+    create_tables,
     insert_log_entry,
-    log_table_exists,
+    start_run_entry,
+    stop_run_entry,
+    tables_exist,
     retrieve_log_entries,
     start_time,
 )
 
-# Set logging to output all info by default (with a space for clarity)
+# Set logging to output all info by default
 logging.basicConfig(
     format="%(message)s",
     level=logging.WARNING,
@@ -46,10 +47,10 @@ class Recorder:
         List of topic names
     _recording : bool
         Whether the Recorder object is currently recording or not
+    _run_id : int
+        The id of the current run
     _con : sqlite3.Connection
         Connection object that updates the database file located at sqlite_database_path
-    _cur : sqlite3.Cursor
-        Database cursor object that updates the database file located at sqlite_database_path
     _client : paho.mqtt.client
         MQTT client that connects to the broker and recives the messages
     """
@@ -70,19 +71,21 @@ class Recorder:
         # Connect to sqlite database
         # check_same_thread needs to be false as the MQTT callbacks run on a different thread
         self._con = sqlite3.connect(sqlite_database_path, check_same_thread=False)
-        self._cur = self._con.cursor()
 
-        # Make a LOG table if none currently exists
-        if log_table_exists(self._cur):
+        # Generate tables if none currently exist
+        if tables_exist(self._con):
             logging.warning(
-                f"Table already exists, mqtt_logger will append to {sqlite_database_path}"
+                f"Tables already exist, mqtt_logger will append to {sqlite_database_path}"
             )
         else:
-            create_log_table(self._cur)
-            logging.info(f"Created table {LOGGER_TABLE_NAME} in {sqlite_database_path}")
+            create_tables(self._con)
+            logging.info(f"Created tables in {sqlite_database_path}")
 
         # The logger object can subscribe to many topics (if none are selected then it will subscribe to all)
         self.topics = topics
+
+        # There is no run id when the object is created, only when the logger is started
+        self._run_id = None
 
         # Do not start logging when object is created (wait for start method)
         self._recording = False
@@ -107,19 +110,15 @@ class Recorder:
             )
 
         # Subscribe to all of the topics
-        try:
-            for topic in self.topics:
-                self._client.subscribe(topic)
-                logging.info(f"Subscribed to: {topic}")
-
-        except Exception as e:
-            logging.error(f"{type(e)}: {e}")
+        for topic in self.topics:
+            self._client.subscribe(topic)
+            logging.info(f"Subscribed to: {topic}")
 
     def _on_message(self, client, userdata, msg):
         """Callback function for MQTT broker on message that logs the incoming MQTT message."""
         if self._recording:
             try:
-                insert_log_entry(self._con, msg.topic, msg.payload)
+                insert_log_entry(self._con, msg.topic, msg.payload, self._run_id)
                 logging.info(f"{len(msg.payload):>4} bytes <- {msg.topic}")
 
             except Exception as e:
@@ -127,16 +126,23 @@ class Recorder:
 
     def start(self):
         """Starts the MQTT logging."""
-        # TODO: ADD RECORDING NUMBER
 
         if self._recording:
-            raise RuntimeError("Already recording")
+            raise RuntimeError("Already recording, please stop first")
 
+        self._run_id = start_run_entry(self._con)
         self._recording = True
-        logging.info("Logging started")
+
+        logging.info(f"Logging started for run {self._run_id}")
 
     def stop(self):
         """Graceful exit for closing the database connection and stopping the MQTT client."""
+
+        if not self._recording:
+            raise RuntimeError("Not recording, please start first")
+
+        stop_run_entry(self._con, self._run_id)
+        self._run_id = None
         self._recording = False
         logging.info("Logging stopped")
         self._client.loop_stop()
@@ -165,8 +171,6 @@ class Playback:
     ----------
     _con : sqlite3.Connection
         Connection object that updates the database file located at sqlite_database_path
-    _cur : sqlite3.Cursor
-        Database cursor object that updates the database file located at sqlite_database_path
     _client : paho.mqtt.client
         MQTT client that connects to the broker and recives the messages
     _log_data: list(dict)
@@ -189,10 +193,9 @@ class Playback:
         # Connect to sqlite database
         # check_same_thread needs to be false as the MQTT callbacks run on a different thread
         self._con = sqlite3.connect(sqlite_database_path, check_same_thread=False)
-        self._cur = self._con.cursor()
 
         # Retrieve all of the log entries from the database
-        self._log_data = retrieve_log_entries(self._cur)
+        self._log_data = retrieve_log_entries(self._con)
 
         # Connect to MQTT broker
         self._client = mqtt.Client()
@@ -235,7 +238,7 @@ class Playback:
         speed : float
             Speed multiplier to determine how fast to send out the data. A higher value means faster.
         """
-        start_unix_time = start_time(self._cur)
+        start_unix_time = start_time(self._con)
 
         async def _publish_aux(log):
             scaled_sleep = (log["unix_time"] - start_unix_time) / speed
