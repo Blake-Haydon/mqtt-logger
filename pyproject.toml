@@ -1,7 +1,7 @@
 [tool.poetry]
 license = "MIT"
 name = "mqtt_logger"
-version = "0.2.5"
+version = "0.3.0"
 description = "Python based MQTT to SQLite3 logger"
 authors = ["Blake Haydon <blake.a.haydon@gmail.com>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ keywords = ["MQTT", "SQLite3"]
 homepage = "https://github.com/Blake-Haydon/mqtt-logger"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 paho-mqtt = "^1.6.1"
 rich = "^12.0.0"
 

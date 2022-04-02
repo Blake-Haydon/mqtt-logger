@@ -54,17 +54,14 @@ def retrieve_log_entries(cursor: sqlite3.Cursor) -> list[dict]:
         """
 
     # Convert list of tuples into a list of dicts
-    log_data = []
-    for record in cursor.execute(query).fetchall():
-        log_data.append(
-            {
-                "unix_time": record[0],
-                "topic": record[1],
-                "message": record[2],
-            }
-        )
-
-    return log_data
+    return [
+        {
+            "unix_time": record[0],
+            "topic": record[1],
+            "message": record[2],
+        }
+        for record in cursor.execute(query).fetchall()
+    ]
 
 
 def start_time(cursor: sqlite3.Cursor) -> float:
