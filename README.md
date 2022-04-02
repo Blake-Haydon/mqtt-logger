@@ -97,9 +97,6 @@ time.sleep(10)
 rec.stop()
 ```
 
----
-
-
 ### Playback Recorded MQTT Messages
 
 This example plays back previously recorded MQTT messages from `mqtt_logger.Recorder`. If you are using a private 
