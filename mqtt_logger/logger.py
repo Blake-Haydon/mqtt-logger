@@ -83,7 +83,8 @@ class Recorder:
             self._cur.execute(
                 f"""
                 CREATE TABLE {LOGGER_TABLE_NAME}
-                (TIME_DELTA DECIMAL(15,6)   PRIMARY KEY         NOT NULL,
+                (ID                         INTEGER             PRIMARY KEY,
+                TIME_DELTA                  DECIMAL(15,6)       NOT NULL,
                 CURRENT_TIME                DECIMAL(15,6)       NOT NULL,
                 TOPIC                       VARCHAR             NOT NULL,
                 MESSAGE                     BLOB                NOT NULL);
@@ -170,7 +171,7 @@ class Recorder:
         # Write data to database
         try:
             self._cur.execute(
-                f"INSERT INTO {LOGGER_TABLE_NAME} VALUES (?, ?, ?, ?)",
+                f"INSERT INTO {LOGGER_TABLE_NAME} VALUES (NULL, ?, ?, ?, ?)",
                 (time_delta, current_time, mqtt_topic, message),
             )
             self._con.commit()
@@ -240,10 +241,11 @@ class Playback:
         for record in all_log_records:
             self._log_data.append(
                 {
-                    "time_delta": record[0],
-                    "current_time": record[1],
-                    "mqtt_topic": record[2],
-                    "message": record[3],
+                    "id": record[0],
+                    "time_delta": record[1],
+                    "current_time": record[2],
+                    "mqtt_topic": record[3],
+                    "message": record[4],
                 }
             )
 
