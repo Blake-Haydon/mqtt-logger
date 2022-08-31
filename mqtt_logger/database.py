@@ -99,7 +99,7 @@ def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id
     con.commit()
 
 
-def retrieve_log_entries(con: sqlite3.Connection) -> list[dict]:
+def retrieve_log_entries(con: sqlite3.Connection):
     """Retrieves all log entries from the database."""
     cur = con.cursor()
 
