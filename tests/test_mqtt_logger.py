@@ -8,7 +8,7 @@ TEST_BROKER_ADDRESS = "broker.hivemq.com"
 
 
 def test_version():
-    assert mqtt_logger.__version__ == "0.3.1"
+    assert mqtt_logger.__version__ == "0.3.2"
 
 
 def test_basic_instantiation(tmp_path):
