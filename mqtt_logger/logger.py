@@ -181,6 +181,7 @@ class Playback:
         self,
         sqlite_database_path: str = "MQTT_log.db",
         broker_address: str = "localhost",
+        topics: list = ["#"],
         verbose: bool = False,
         username: str = None,
         password: str = None,
@@ -190,12 +191,17 @@ class Playback:
         if verbose:
             logging.getLogger().setLevel(logging.INFO)
 
+        sql_patterns = []
+        for topic in topics:
+            sql_patterns.append(self._mqtt_pattern_to_sql_pattern(topic))
+
+
         # Connect to sqlite database
         # check_same_thread needs to be false as the MQTT callbacks run on a different thread
         self._con = sqlite3.connect(sqlite_database_path, check_same_thread=False)
 
         # Retrieve all of the log entries from the database
-        self._log_data = retrieve_log_entries(self._con)
+        self._log_data = retrieve_log_entries(self._con, sql_patterns)
 
         # Connect to MQTT broker
         self._client = mqtt.Client()
@@ -254,3 +260,29 @@ class Playback:
         # Load all async operation at the start using gather
         publish_queue = [_publish_aux(log) for log in self._log_data]
         await asyncio.gather(*publish_queue, return_exceptions=True)
+
+    def _mqtt_pattern_to_sql_pattern(self, mqtt_pattern: str) -> str:
+        """Converts a MQTT pattern to a SQL pattern.
+
+        Parameters
+        ----------
+        mqtt_pattern : str
+            MQTT pattern to be converted to a SQL pattern
+
+        Returns
+        -------
+        sql_pattern : str
+            SQL pattern that can be used in a LIKE statement
+        """
+            # Check for edge cases where the MQTT pattern may not be valid
+        if mqtt_pattern == "#" or mqtt_pattern == "":
+            return "%"  # If the MQTT pattern is just "#", return SQL wildcard "%"
+
+        # Replace MQTT wildcards with SQL wildcards
+        sql_pattern = mqtt_pattern.replace("+", "%").replace("#", "%")
+
+        # Replace multiple consecutive "%" with a single "%"
+        while "%%" in sql_pattern:
+            sql_pattern = sql_pattern.replace("%%", "%")
+
+        return sql_pattern
