@@ -108,11 +108,7 @@ def retrieve_log_entries(con: sqlite3.Connection, patterns: [str] = None) -> lis
         """
 
     if patterns is not None:
-        query += f"WHERE "
-
-        for pattern in patterns[:-1]:
-            query += f" TOPIC LIKE '{pattern}' OR"
-        query += f" TOPIC LIKE '{patterns[-1]}'"
+        query += " WHERE " + " OR ".join([f"TOPIC LIKE '{pattern}' " for pattern in patterns])
 
     # Convert list of tuples into a list of dicts
     return [
