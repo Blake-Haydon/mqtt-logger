@@ -203,6 +203,9 @@ class Playback:
         # Retrieve all of the log entries from the database
         self._log_data = retrieve_log_entries(self._con, sql_patterns)
 
+        # Save the async task so that it can be cancelled
+        self._publish_task = None
+
         # Connect to MQTT broker
         self._client = mqtt.Client()
         if username is not None and password is not None:
@@ -235,6 +238,10 @@ class Playback:
         # Run the event loop to issue out all of the MQTT publishes
         asyncio.run(self._publish(speed))
 
+    def stop(self):
+        """Cancel the async function that is publishing the MQTT messages."""
+        self._publish_task.cancel()
+
     async def _publish(self, speed: float):
         """Async function that collects all the necessary publish functions and gathers them to then be run by the
         event loop.
@@ -259,7 +266,13 @@ class Playback:
 
         # Load all async operation at the start using gather
         publish_queue = [_publish_aux(log) for log in self._log_data]
-        await asyncio.gather(*publish_queue, return_exceptions=True)
+        self._publish_task = asyncio.gather(*publish_queue, return_exceptions=True)
+
+        try:
+            await self._publish_task
+        except asyncio.exceptions.CancelledError:
+            logging.info("Playback stopped")
+
 
     def _mqtt_pattern_to_sql_pattern(self, mqtt_pattern: str) -> str:
         """Converts a MQTT pattern to a SQL pattern.
