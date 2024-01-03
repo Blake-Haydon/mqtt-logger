@@ -14,18 +14,17 @@ on:
 
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.9'
-    - name: Run poetry image
-      uses: abatilo/actions-poetry@v2.0.0
-    - name: Poetry
-      run: poetry config http-basic.pypi "__token__" "${POETRY_PYPI_TOKEN_PYPI}" && poetry publish --build
-      env:
-        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Run poetry image
+        uses: abatilo/actions-poetry@v2.0.0
+      - name: Poetry
+        run: poetry config http-basic.pypi "__token__" "${POETRY_PYPI_TOKEN_PYPI}" && poetry publish --build
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
