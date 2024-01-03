@@ -99,13 +99,16 @@ def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id
     con.commit()
 
 
-def retrieve_log_entries(con: sqlite3.Connection):
+def retrieve_log_entries(con: sqlite3.Connection, patterns: [str] = None) -> list:
     """Retrieves all log entries from the database."""
     cur = con.cursor()
 
     query = f"""
         SELECT UNIX_TIME, TOPIC, MESSAGE FROM {LOGGER_TABLE_NAME}
         """
+
+    if patterns is not None:
+        query += " WHERE " + " OR ".join([f"TOPIC LIKE '{pattern}' " for pattern in patterns])
 
     # Convert list of tuples into a list of dicts
     return [
