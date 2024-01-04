@@ -52,7 +52,7 @@ class Recorder:
     _con : sqlite3.Connection
         Connection object that updates the database file located at sqlite_database_path
     _client : paho.mqtt.client
-        MQTT client that connects to the broker and recives the messages
+        MQTT client that connects to the broker and receives the messages
     """
 
     def __init__(
@@ -106,7 +106,7 @@ class Recorder:
             logging.info("Connection Successful")
         else:
             raise ConnectionError(
-                "Connection was unsuccessful, check that the broker IP is corrrect"
+                "Connection was unsuccessful, check that the broker IP is correct"
             )
 
         # Subscribe to all of the topics
@@ -172,7 +172,7 @@ class Playback:
     _con : sqlite3.Connection
         Connection object that updates the database file located at sqlite_database_path
     _client : paho.mqtt.client
-        MQTT client that connects to the broker and recives the messages
+        MQTT client that connects to the broker and receives the messages
     _log_data: list(dict)
         A list of all of the rows in the log file stored in dict format
     """
@@ -186,7 +186,6 @@ class Playback:
         username: str = None,
         password: str = None,
     ):
-
         # If set to verbose print info messages
         if verbose:
             logging.getLogger().setLevel(logging.INFO)
@@ -194,7 +193,6 @@ class Playback:
         sql_patterns = []
         for topic in topics:
             sql_patterns.append(self._mqtt_pattern_to_sql_pattern(topic))
-
 
         # Connect to sqlite database
         # check_same_thread needs to be false as the MQTT callbacks run on a different thread
@@ -221,7 +219,7 @@ class Playback:
             logging.info("Connection Successful")
         else:
             raise ConnectionError(
-                "Connection was unsuccessful, check that the broker IP is corrrect"
+                "Connection was unsuccessful, check that the broker IP is correct"
             )
 
     def play(self, speed: float = 1):
@@ -273,7 +271,6 @@ class Playback:
         except asyncio.exceptions.CancelledError:
             logging.info("Playback stopped")
 
-
     def _mqtt_pattern_to_sql_pattern(self, mqtt_pattern: str) -> str:
         """Converts a MQTT pattern to a SQL pattern.
 
@@ -287,7 +284,7 @@ class Playback:
         sql_pattern : str
             SQL pattern that can be used in a LIKE statement
         """
-            # Check for edge cases where the MQTT pattern may not be valid
+        # Check for edge cases where the MQTT pattern may not be valid
         if mqtt_pattern == "#" or mqtt_pattern == "":
             return "%"  # If the MQTT pattern is just "#", return SQL wildcard "%"
 
