@@ -60,6 +60,9 @@ class Recorder:
         sqlite_database_path: str = "MQTT_log.db",
         topics: List[str] = ["#"],
         broker_address: str = "localhost",
+        port: int = 1883,
+        use_tls: bool = False,
+        tls_insecure: bool = False,
         verbose: bool = False,
         username: Optional[str] = None,
         password: Optional[str] = None,
@@ -94,9 +97,12 @@ class Recorder:
         self._client = mqtt.Client()
         self._client.on_connect = self._on_connect
         self._client.on_message = self._on_message
+        if use_tls:
+            self._client.tls_set()
+            self._client.tls_insecure_set(tls_insecure)
         if username is not None and password is not None:
             self._client.username_pw_set(username, password)
-        self._client.connect(broker_address)
+        self._client.connect(broker_address, port=port)
         self._client.loop_start()  # Threaded execution loop
 
     def _on_connect(self, client, userdata, flags, rc):
