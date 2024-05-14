@@ -61,8 +61,8 @@ class Recorder:
         topics: list = ["#"],
         broker_address: str = "localhost",
         verbose: bool = False,
-        username: str = None,
-        password: str = None,
+        username: str | None = None,
+        password: str | None = None,
     ):
         # If set to verbose print info messages
         if verbose:
@@ -183,8 +183,8 @@ class Playback:
         broker_address: str = "localhost",
         topics: list = ["#"],
         verbose: bool = False,
-        username: str = None,
-        password: str = None,
+        username: str | None = None,
+        password: str | None = None,
     ):
         # If set to verbose print info messages
         if verbose:

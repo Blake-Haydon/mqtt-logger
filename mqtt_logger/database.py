@@ -84,7 +84,7 @@ def stop_run_entry(con: sqlite3.Connection, run_id: int):
     con.commit()
 
 
-def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id: int):
+def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id: int | None):
     """Inserts a log entry into the database."""
     cur = con.cursor()
 
@@ -95,6 +95,8 @@ def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id
         """
 
     # NOTE: time.time() will not be the correct time if the system clock is reset (i.e on a raspberry pi)
+    if run_id is None:
+        raise ValueError("run_id must be provided.")
     cur.execute(query, (topic, message, run_id))
     con.commit()
 
