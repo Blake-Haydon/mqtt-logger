@@ -15,7 +15,7 @@ from mqtt_logger.database import (
     start_time,
 )
 
-# Set logging to output all info by default
+# Set logging to output only warnings default
 logging.basicConfig(
     format="%(message)s",
     level=logging.WARNING,
