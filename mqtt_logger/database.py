@@ -1,5 +1,6 @@
 import sqlite3
 import time
+from typing import Optional, List
 
 
 LOGGER_TABLE_NAME = "LOG"
@@ -70,7 +71,7 @@ def start_run_entry(con: sqlite3.Connection) -> int:
     return cur.lastrowid
 
 
-def stop_run_entry(con: sqlite3.Connection, run_id: int):
+def stop_run_entry(con: sqlite3.Connection, run_id: Optional[int]):
     """Inserts a run entry into the database. Returns the run id."""
     cur = con.cursor()
 
@@ -80,11 +81,14 @@ def stop_run_entry(con: sqlite3.Connection, run_id: int):
         WHERE ROWID = {run_id}
         """
 
+    if run_id is None:
+        raise ValueError("run_id must be provided.")
     cur.execute(query)
     con.commit()
 
 
-def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id: int):
+def insert_log_entry(
+    con: sqlite3.Connection, topic: str, message: bytes, run_id: Optional[int]):
     """Inserts a log entry into the database."""
     cur = con.cursor()
 
@@ -95,11 +99,13 @@ def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id
         """
 
     # NOTE: time.time() will not be the correct time if the system clock is reset (i.e on a raspberry pi)
+    if run_id is None:
+        raise ValueError("run_id must be provided.")
     cur.execute(query, (topic, message, run_id))
     con.commit()
 
 
-def retrieve_log_entries(con: sqlite3.Connection, patterns: [str] = None) -> list:
+def retrieve_log_entries(con: sqlite3.Connection, patterns: List[str] = None) -> list:
     """Retrieves all log entries from the database."""
     cur = con.cursor()
 
@@ -108,7 +114,9 @@ def retrieve_log_entries(con: sqlite3.Connection, patterns: [str] = None) -> lis
         """
 
     if patterns is not None:
-        query += " WHERE " + " OR ".join([f"TOPIC LIKE '{pattern}' " for pattern in patterns])
+        query += " WHERE " + " OR ".join(
+            [f"TOPIC LIKE '{pattern}' " for pattern in patterns]
+        )
 
     # Convert list of tuples into a list of dicts
     return [
