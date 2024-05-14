@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 import asyncio
-
+from typing import Optional, List
 import paho.mqtt.client as mqtt
 from rich.logging import RichHandler
 
@@ -58,11 +58,11 @@ class Recorder:
     def __init__(
         self,
         sqlite_database_path: str = "MQTT_log.db",
-        topics: list = ["#"],
+        topics: List[str] = ["#"],
         broker_address: str = "localhost",
         verbose: bool = False,
-        username: str | None = None,
-        password: str | None = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
     ):
         # If set to verbose print info messages
         if verbose:
@@ -183,8 +183,8 @@ class Playback:
         broker_address: str = "localhost",
         topics: list = ["#"],
         verbose: bool = False,
-        username: str | None = None,
-        password: str | None = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
     ):
         # If set to verbose print info messages
         if verbose:
