@@ -34,6 +34,12 @@ class Recorder:
         A list containing the topic strings that are to be subscribed to
     broker_address : str
         The IP address that the MQTT broker lives on
+    port : int
+        The port of the MQTT broker
+    use_tls : bool
+        Setup a TLS connection with the MQTT broker
+    tls_insecure : bool
+        Allow invalid certificates
     verbose : bool
         Set logging output to INFO level if True
     username : str
@@ -60,6 +66,9 @@ class Recorder:
         sqlite_database_path: str = "MQTT_log.db",
         topics: List[str] = ["#"],
         broker_address: str = "localhost",
+        port: int = 1883,
+        use_tls: bool = False,
+        tls_insecure: bool = False,
         verbose: bool = False,
         username: Optional[str] = None,
         password: Optional[str] = None,
@@ -94,9 +103,12 @@ class Recorder:
         self._client = mqtt.Client()
         self._client.on_connect = self._on_connect
         self._client.on_message = self._on_message
+        if use_tls:
+            self._client.tls_set()
+            self._client.tls_insecure_set(tls_insecure)
         if username is not None and password is not None:
             self._client.username_pw_set(username, password)
-        self._client.connect(broker_address)
+        self._client.connect(broker_address, port=port)
         self._client.loop_start()  # Threaded execution loop
 
     def _on_connect(self, client, userdata, flags, rc):
@@ -160,6 +172,12 @@ class Playback:
         Filepath to the *.db file that sqlite uses to save data
     broker_address : str
         The IP address of the MQTT broker
+    port : int
+        The port of the MQTT broker
+    use_tls : bool
+        Setup a TLS connection with the MQTT broker
+    tls_insecure : bool
+        Allow invalid certificates
     verbose : bool
         Set logging output to INFO level if True
     username : str
@@ -182,6 +200,9 @@ class Playback:
         sqlite_database_path: str = "MQTT_log.db",
         broker_address: str = "localhost",
         topics: list = ["#"],
+        port: int = 1883,
+        use_tls: bool = False,
+        tls_insecure: bool = False,
         verbose: bool = False,
         username: Optional[str] = None,
         password: Optional[str] = None,
@@ -206,10 +227,13 @@ class Playback:
 
         # Connect to MQTT broker
         self._client = mqtt.Client()
+        if use_tls:
+            self._client.tls_set()
+            self._client.tls_insecure_set(tls_insecure)
         if username is not None and password is not None:
             self._client.username_pw_set(username, password)
         self._client.on_connect = self._on_connect
-        self._client.connect(broker_address)
+        self._client.connect(broker_address, port=port)
         self._client.loop_start()  # Threaded execution loop
 
     def _on_connect(self, client, userdata, flags, rc):
