@@ -1,6 +1,7 @@
 import sqlite3
 import time
-from typing import Optional, List
+import logging
+from typing import Optional, List, Set
 
 
 LOGGER_TABLE_NAME = "LOG"
@@ -11,7 +12,7 @@ def create_tables(con: sqlite3.Connection):
     """Initialise the database by creating the necessary tables for logging."""
     cur = con.cursor()
 
-    query = f"""
+    log_query = f"""
         CREATE TABLE {LOGGER_TABLE_NAME}
         (ID                         INTEGER             PRIMARY KEY,
         RUN_ID                      INTEGER             NOT NULL,
@@ -19,22 +20,23 @@ def create_tables(con: sqlite3.Connection):
         TOPIC                       VARCHAR             NOT NULL,
         MESSAGE                     BLOB                NOT NULL);
     """
-    cur.execute(query)
 
-    query = f"""
+    run_query = f"""
         CREATE TABLE {RUNS_TABLE_NAME}
         (ID                         INTEGER             PRIMARY KEY,
         START_UNIX_TIME             DECIMAL(15,6)       NOT NULL,
         END_UNIX_TIME               DECIMAL(15,6));
         """
-    cur.execute(query)
+
+    cur.execute(log_query)
+    cur.execute(run_query)
 
     # Commit database tables to the database
     con.commit()
 
 
 def tables_exist(con: sqlite3.Connection) -> bool:
-    """Checks if the LOG table exists in the database."""
+    """Checks if the `LOG` and `RUN` tables exists in the database."""
     cur = con.cursor()
 
     log_query = f"""
@@ -56,7 +58,7 @@ def tables_exist(con: sqlite3.Connection) -> bool:
     return log_exists  # or run_exists could be used as they are equivalent
 
 
-def start_run_entry(con: sqlite3.Connection) -> int:
+def start_run_entry(con: sqlite3.Connection) -> Optional[int]:
     """Inserts a run entry into the database. Returns the run id."""
     cur = con.cursor()
 
@@ -87,8 +89,7 @@ def stop_run_entry(con: sqlite3.Connection, run_id: Optional[int]):
     con.commit()
 
 
-def insert_log_entry(
-    con: sqlite3.Connection, topic: str, message: bytes, run_id: Optional[int]):
+def insert_log_entry(con: sqlite3.Connection, topic: str, message: bytes, run_id: Optional[int]):
     """Inserts a log entry into the database."""
     cur = con.cursor()
 
@@ -101,11 +102,17 @@ def insert_log_entry(
     # NOTE: time.time() will not be the correct time if the system clock is reset (i.e on a raspberry pi)
     if run_id is None:
         raise ValueError("run_id must be provided.")
+
+    if run_id not in run_ids(con):
+        logging.warning(
+            f"Run ID {run_id} does not exist in the database, please call start_run_entry() first."
+        )
+
     cur.execute(query, (topic, message, run_id))
     con.commit()
 
 
-def retrieve_log_entries(con: sqlite3.Connection, patterns: List[str] = None) -> list:
+def retrieve_log_entries(con: sqlite3.Connection, patterns: Optional[List[str]] = None) -> list:
     """Retrieves all log entries from the database."""
     cur = con.cursor()
 
@@ -130,7 +137,7 @@ def retrieve_log_entries(con: sqlite3.Connection, patterns: List[str] = None) ->
 
 
 def start_time(con: sqlite3.Connection) -> float:
-    """Retrieves the logging start time"""
+    """Retrieves the logging start time."""
     cur = con.cursor()
 
     # TODO: Implement this with run numbers
@@ -139,3 +146,13 @@ def start_time(con: sqlite3.Connection) -> float:
         """
 
     return cur.execute(query).fetchone()[0]
+
+
+def run_ids(con: sqlite3.Connection) -> Set[int]:
+    """Retrieves all run ids from the database."""
+    cur = con.cursor()
+
+    query = f"""SELECT ID FROM {RUNS_TABLE_NAME}"""
+
+    all_run_ids = cur.execute(query).fetchall()
+    return {record[0] for record in all_run_ids}
