@@ -7,10 +7,6 @@ import mqtt_logger
 TEST_BROKER_ADDRESS = "broker.hivemq.com"
 
 
-def test_version():
-    assert mqtt_logger.__version__ == "0.3.5"
-
-
 def test_basic_instantiation(tmp_path):
     mqtt_logger.Recorder(
         sqlite_database_path=os.path.join(tmp_path, "MQTT_log.db"),
