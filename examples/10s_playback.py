@@ -6,6 +6,9 @@ playback = mqtt_logger.Playback(
     sqlite_database_path=os.path.join(os.path.dirname(__file__), "MQTT_log.db"),
     broker_address="broker.hivemq.com",
     verbose=True,
+    # port=1883,
+    # use_tls=True,
+    # tls_insecure=False,
     # username="username",
     # password="password",
 )

@@ -8,6 +8,9 @@ rec = mqtt_logger.Recorder(
     topics=["test/#"],
     broker_address="broker.hivemq.com",
     verbose=True,
+    # port=1883,
+    # use_tls=True,
+    # tls_insecure=False,
     # username="username",
     # password="password",
 )

@@ -34,8 +34,7 @@ pip install mqtt-logger
 
 ### Recording MQTT Messages
 
-This example records messages to the `test/#` topic using a public MQTT broker. It will record for 10 seconds. If you
-are using a private broker, you may need to set the `username` and `password` parameters.
+This example records messages to the `test/#` topic using a public MQTT broker. It will record for 10 seconds. If you are using a private broker, you may need to set the `username` and `password` parameters.
 
 <!-- poetry run python examples/10s_recording.py -->
 
@@ -52,6 +51,15 @@ rec = mqtt_logger.Recorder(
     topics=["test/#"],
     broker_address="broker.hivemq.com",
     verbose=True,
+
+    ## Uncomment for TLS connection
+    # port=8883,
+	# use_tls=True,
+	# tls_insecure=False,
+
+    ## Uncomment for username and password
+    # username="username",
+    # password="password",
 )
 
 # Start the logger, wait 10 seconds and stop the logger
@@ -59,31 +67,6 @@ rec.start()
 time.sleep(10)
 rec.stop()
 ```
-
-This example records messages using a TLS connection.
-
-```python
-import mqtt_logger
-import os
-import time
-
-# Initalise mqtt recorder object
-rec = mqtt_logger.Recorder(
-    sqlite_database_path=os.path.join(os.path.dirname(__file__), "MQTT_log.db"),
-    topics=["test/#"],
-    broker_address="broker.hivemq.com",
-	port=8883,
-	use_tls=True,
-	tls_insecure=False,
-    verbose=True,
-)
-
-# Start the logger, wait 10 seconds and stop the logger
-rec.start()
-time.sleep(10)
-rec.stop()
-```
-
 
 ### Playback Recorded MQTT Messages
 
