@@ -3,6 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/mqtt-logger.svg)](https://badge.fury.io/py/mqtt-logger)
 [![Unit Tests](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-test.yml/badge.svg)](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-test.yml)
 [![Upload Python Package](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Blake-Haydon/mqtt-logger/actions/workflows/python-publish.yml)
+[![codecov](https://codecov.io/github/Blake-Haydon/mqtt-logger/graph/badge.svg?token=8PA3F5RWXA)](https://codecov.io/github/Blake-Haydon/mqtt-logger)
 
 ## Table of Contents
 
