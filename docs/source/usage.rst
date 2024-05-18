@@ -1,3 +1,6 @@
-you can use the ``mqtt_logger.Playback()`` function:
+Usage
+========
 
 .. autofunction:: mqtt_logger.Playback
+
+.. autofunction:: mqtt_logger.Recorder
