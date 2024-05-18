@@ -37,9 +37,9 @@ class Recorder:
     verbose : bool
         Set logging output to INFO level if True
     username : str
-        Username for mqtt broker
+        Username for MQTT broker
     password : str
-        Password for mqtt broker
+        Password for MQTT broker
 
     Attributes
     ----------
@@ -163,9 +163,9 @@ class Playback:
     verbose : bool
         Set logging output to INFO level if True
     username : str
-        Username for mqtt broker
+        Username for MQTT broker
     password : str
-        Password for mqtt broker
+        Password for MQTT broker
 
     Attributes
     ----------
