@@ -29,7 +29,7 @@ class Recorder:
     Parameters
     ----------
     sqlite_database_path : str
-        Filepath to the *.db file that sqlite uses to save data
+        Filepath to the `*.db` file that sqlite uses to save data
     topics : List(str)
         A list containing the topic strings that are to be subscribed to
     broker_address : str
@@ -43,9 +43,9 @@ class Recorder:
     verbose : bool
         Set logging output to INFO level if True
     username : str
-        Username for mqtt broker
+        Username for MQTT broker
     password : str
-        Password for mqtt broker
+        Password for MQTT broker
 
     Attributes
     ----------
@@ -169,7 +169,7 @@ class Playback:
     Parameters
     ----------
     sqlite_database_path : str
-        Filepath to the *.db file that sqlite uses to save data
+        Filepath to the `*.db` file that sqlite uses to save data
     broker_address : str
         The IP address of the MQTT broker
     port : int
@@ -181,9 +181,9 @@ class Playback:
     verbose : bool
         Set logging output to INFO level if True
     username : str
-        Username for mqtt broker
+        Username for MQTT broker
     password : str
-        Password for mqtt broker
+        Password for MQTT broker
 
     Attributes
     ----------

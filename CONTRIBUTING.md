@@ -2,7 +2,7 @@
 
 ## Installation
 
-If you are looking to develop `mqtt-logger`, clone and run the following commands (poetry must be installed).
+If you are looking to develop `mqtt_logger`, clone and run the following commands (poetry must be installed).
 
 ```bash
 git clone git@github.com:Blake-Haydon/mqtt-logger.git

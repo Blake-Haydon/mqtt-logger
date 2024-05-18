@@ -20,14 +20,14 @@
 
 ## Description
 
-`mqtt-logger` allows for asynchronous data logging of MQTT messages to a SQLite database. It also allows for the playback of previously recorded MQTT messages.
+`mqtt_logger` allows for asynchronous data logging of MQTT messages to a SQLite database. It also allows for the playback of previously recorded MQTT messages.
 
 ## Installation
 
-To install `mqtt-logger` you can simply use `pip`.
+To install `mqtt_logger` you can simply use `pip`.
 
 ```bash
-pip install mqtt-logger
+pip install mqtt_logger
 ```
 
 ## Example Usage
